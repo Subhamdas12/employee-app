@@ -11,29 +11,34 @@ import subprocess
 import sys
 
 
-def run(cmd: list[str], cwd: str | None = None) -> None:
-    print(f">>> {' '.join(cmd)}")
+def run(cmd: list[str], cwd: str | None = None, critical: bool = True) -> None:
+    """Run a command. If critical=False, log failures but continue."""
+    print(f">>> {' '.join(cmd)}", flush=True)
     result = subprocess.run(cmd, cwd=cwd)
     if result.returncode != 0:
-        print(f"Command failed with exit code {result.returncode}")
-        sys.exit(result.returncode)
+        msg = f"Command failed with exit code {result.returncode}"
+        if critical:
+            print(msg, flush=True)
+            sys.exit(result.returncode)
+        else:
+            print(f"WARNING: {msg} (non-critical, continuing...)", flush=True)
 
 
 def main() -> int:
     port = os.getenv("PORT", "8000")
     app_dir = "/app/application"
 
-    # Step 1 — Load CSV data into PostgreSQL (creates tables + imports if needed)
-    run([sys.executable, "/app/main.py"])
+    # Step 1 — Load CSV data into PostgreSQL (non-critical: don't kill server if this fails)
+    run([sys.executable, "/app/main.py"], critical=False)
 
-    # Step 2 — Apply Django migrations
-    run([sys.executable, "manage.py", "migrate", "--noinput"], cwd=app_dir)
+    # Step 2 — Apply Django migrations (--fake-initial skips tables already created by main.py)
+    run([sys.executable, "manage.py", "migrate", "--fake-initial", "--noinput"], cwd=app_dir)
 
     # Step 3 — Collect static files
     run([sys.executable, "manage.py", "collectstatic", "--noinput"], cwd=app_dir)
 
     # Step 4 — Start gunicorn
-    print(f">>> Starting gunicorn on 0.0.0.0:{port}")
+    print(f">>> Starting gunicorn on 0.0.0.0:{port}", flush=True)
     cmd = [
         "gunicorn",
         "config.wsgi:application",
