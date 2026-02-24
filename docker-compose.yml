@@ -1,0 +1,139 @@
+services:
+  # Override APP_IMAGE when pushing/pulling from Docker Hub:
+  # APP_IMAGE=yourdockerhubusername/employee-app:latest
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: employee_postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mydb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: employee_redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  data_loader:
+    image: subhamdas12/employee-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: employee_data_loader
+    working_dir: /app
+    command: python main.py
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      EMPLOYEE_CSV_FILE: Employee.csv
+      FORCE_RELOAD_EMPLOYEES: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  web:
+    image: subhamdas12/employee-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: employee_web
+    working_dir: /app/application
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      DJANGO_DEBUG: "true"
+      POSTGRES_DB: mydb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      REDIS_CACHE_URL: redis://redis:6379/1
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    depends_on:
+      data_loader:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_worker:
+    image: subhamdas12/employee-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: employee_celery_worker
+    working_dir: /app/application
+    command: celery -A config worker -l info
+    environment:
+      DJANGO_DEBUG: "true"
+      POSTGRES_DB: mydb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      REDIS_CACHE_URL: redis://redis:6379/1
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      data_loader:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery_beat:
+    image: subhamdas12/employee-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: employee_celery_beat
+    working_dir: /app/application
+    command: celery -A config beat -l info
+    environment:
+      DJANGO_DEBUG: "true"
+      POSTGRES_DB: mydb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      REDIS_CACHE_URL: redis://redis:6379/1
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      data_loader:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: employee_redisinsight
+    ports:
+      - "8001:5540"
+    depends_on:
+      - redis
+volumes:
+  pg_data:

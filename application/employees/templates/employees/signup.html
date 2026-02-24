@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign Up · join the community</title>
+    <!-- same font & icon stack as login for consistency -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #f0f4fa 0%, #e9eef5 100%);
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 1.5rem;
+        }
+
+        /* elegant frosted card — sibling to login */
+        .card {
+            max-width: 480px;  /* slightly wider for signup fields */
+            width: 100%;
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.02);
+            border-radius: 36px;
+            padding: 2.2rem 2rem 2.5rem;
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: scale(1.002);
+            box-shadow: 0 30px 55px -10px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.7);
+        }
+
+        h1 {
+            font-size: 2.1rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin: 0 0 0.25rem 0;
+            background: linear-gradient(135deg, #1e293b, #2d3c5e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
+        }
+
+        .greeting-sub {
+            font-size: 0.9rem;
+            color: #4b5a6e;
+            margin-bottom: 2rem;
+            border-left: 3px solid #3b82f6;
+            padding-left: 0.9rem;
+            font-weight: 400;
+            background: rgba(59,130,246,0.02);
+            border-radius: 0 4px 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* consistent form row styling */
+        form p {
+            display: block;
+            margin-bottom: 1.7rem;
+            position: relative;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1f2a41;
+            letter-spacing: -0.01em;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        label i {
+            color: #3b82f6;
+            font-size: 0.9rem;
+            width: 18px;
+            text-align: center;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            background: #ffffffd6;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 20px;
+            outline: none;
+            transition: all 0.2s;
+            color: #0b1e32;
+            font-weight: 450;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+        }
+
+        input:focus {
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 8px 18px -10px rgba(59,130,246,0.3), 0 0 0 3px rgba(59,130,246,0.15);
+        }
+
+        input::placeholder {
+            color: #a3b3cc;
+            font-weight: 350;
+            font-size: 0.95rem;
+            opacity: 0.6;
+        }
+
+        /* error styling (modern, soft) */
+        .errorlist {
+            list-style: none;
+            margin: 8px 0 0 0;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #b91c1c;
+            background: #fee2e2;
+            border-radius: 30px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #fecaca;
+            width: auto;
+        }
+
+        .errorlist i {
+            font-size: 0.75rem;
+            color: #b91c1c;
+        }
+
+        .nonfield-errors {
+            background: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            border-radius: 14px;
+            padding: 0.8rem 1.2rem;
+            margin-bottom: 1.8rem;
+            font-size: 0.9rem;
+            color: #92400e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #fde68a;
+        }
+
+        .nonfield-errors i {
+            color: #d97706;
+            font-size: 1.1rem;
+        }
+
+        /* signup button — playful & gradient */
+        button {
+            width: 100%;
+            margin-top: 1.2rem;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(115deg, #0f3b5e, #1f5f8e, #2c7cb6);
+            background-size: 200% auto;
+            color: white;
+            border: none;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            box-shadow: 0 15px 25px -10px #0f3b5e80;
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        button i {
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            background-position: right center;
+            box-shadow: 0 22px 30px -10px #146b9e;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+            box-shadow: 0 8px 15px -5px #0a3752;
+        }
+
+        /* help link (switch to login) */
+        .help {
+            margin-top: 2.2rem;
+            text-align: center;
+            font-size: 1rem;
+            color: #2c3f5c;
+            font-weight: 450;
+            border-top: 1.5px dashed #cfddee;
+            padding-top: 1.8rem;
+        }
+
+        .help a {
+            color: #1d4ed8;
+            font-weight: 600;
+            text-decoration: none;
+            background: #ecf3ff;
+            padding: 0.5rem 1.4rem;
+            border-radius: 40px;
+            margin-left: 8px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            border: 1px solid transparent;
+        }
+
+        .help a i {
+            font-size: 0.9rem;
+        }
+
+        .help a:hover {
+            background: #dbeafe;
+            border-color: #b3cdff;
+            color: #183e9e;
+            box-shadow: 0 4px 10px #b0c9ff70;
+        }
+
+        /* django's default p wraps, keep consistent */
+        form p br {
+            display: none;  /* use block layout */
+        }
+
+        /* extra password hints can be subtle, we keep minimal */
+        .helptext {
+            display: block;
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 5px;
+            margin-left: 5px;
+        }
+
+        /* adjust errorlist to not stretch full width */
+        ul.errorlist {
+            max-width: fit-content;
+        }
+
+        /* sparkle for signup extra */
+        .sparkle {
+            display: inline-flex;
+            margin-left: 4px;
+        }
+
+        @media (max-width: 450px) {
+            .card {
+                padding: 1.8rem 1.5rem;
+                border-radius: 30px;
+            }
+            h1 {
+                font-size: 1.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <h1>Join the club</h1>
+            <i class="fas fa-rocket" style="color: #3b82f6; font-size: 2rem; opacity: 0.9;"></i>
+        </div>
+        <div class="greeting-sub">
+            <i class="fas fa-sparkles" style="margin-right: 4px;"></i> Create your free account
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- non field errors (like password mismatch) -->
+            {% if form.non_field_errors %}
+            <div class="nonfield-errors">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>{{ form.non_field_errors }}</span>
+            </div>
+            {% endif %}
+
+            <!-- Username -->
+            <p>
+                <label for="{{ form.username.id_for_label }}">
+                    <i class="fas fa-user-circle"></i> {{ form.username.label }}
+                </label><br>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <ul class="errorlist"><i class="fas fa-circle-exclamation"></i> {{ form.username.errors.0 }}</ul>
+                {% endif %}
+                {% if form.username.help_text %}
+                    <span class="helptext"><i class="far fa-lightbulb" style="margin-right: 4px;"></i> {{ form.username.help_text }}</span>
+                {% endif %}
+            </p>
+
+            <!-- Password1 -->
+            <p>
+                <label for="{{ form.password1.id_for_label }}">
+                    <i class="fas fa-lock"></i> {{ form.password1.label }}
+                </label><br>
+                {{ form.password1 }}
+                {% if form.password1.errors %}
+                <ul class="errorlist"><i class="fas fa-circle-exclamation"></i> {{ form.password1.errors.0 }}</ul>
+                {% endif %}
+                {% if form.password1.help_text %}
+                    <span class="helptext"><i class="far fa-lightbulb"></i> {{ form.password1.help_text }}</span>
+                {% endif %}
+            </p>
+
+            <!-- Password2 (confirmation) -->
+            <p>
+                <label for="{{ form.password2.id_for_label }}">
+                    <i class="fas fa-lock"></i> {{ form.password2.label }}
+                </label><br>
+                {{ form.password2 }}
+                {% if form.password2.errors %}
+                <ul class="errorlist"><i class="fas fa-circle-exclamation"></i> {{ form.password2.errors.0 }}</ul>
+                {% endif %}
+                {% if form.password2.help_text %}
+                    <span class="helptext">{{ form.password2.help_text }}</span>
+                {% endif %}
+            </p>
+
+            <button type="submit">
+                <span>Sign up</span>
+                <i class="fas fa-pen-fancy"></i>
+            </button>
+
+            <!-- optional terms notice (friendly) -->
+            <div style="font-size: 0.7rem; text-align: center; margin-top: 1.5rem; color: #62748c; background: #ecf8ff; padding: 0.4rem 1rem; border-radius: 40px;">
+                <i class="fas fa-shield-heart" style="margin-right: 5px;"></i> By joining, you agree to our cozy terms.
+            </div>
+        </form>
+
+        <p class="help">
+            <span style="opacity:0.8;">🔓 Already a member?</span>
+            <a href="{% url 'login' %}">
+                <i class="fas fa-arrow-right-to-bracket"></i> Log in
+            </a>
+        </p>
+
+        <!-- tiny footer for consistency with login -->
+        <div style="font-size: 0.7rem; text-align: center; margin-top: 1.8rem; color: #a6b9cf;">
+            <i class="far fa-star"></i> secure & private
+        </div>
+    </div>
+</body>
+</html>
