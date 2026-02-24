@@ -1,6 +1,7 @@
 import psycopg2
 import csv
 import os
+from urllib.parse import urlparse
 
 
 def create_auth_tables(cur):
@@ -193,12 +194,27 @@ def load_employee_csv_to_postgres(
 
     print("CSV data loaded successfully into employees table.")
 
+database_url = os.getenv("DATABASE_URL")
+if database_url:
+    parsed_db = urlparse(database_url)
+    db_host = parsed_db.hostname or "localhost"
+    db_port = int(parsed_db.port or 5432)
+    db_name = (parsed_db.path or "/mydb").lstrip("/")
+    db_user = parsed_db.username or "postgres"
+    db_password = parsed_db.password or "postgres"
+else:
+    db_host = os.getenv("POSTGRES_HOST", "localhost")
+    db_port = int(os.getenv("POSTGRES_PORT", "5432"))
+    db_name = os.getenv("POSTGRES_DB", "mydb")
+    db_user = os.getenv("POSTGRES_USER", "postgres")
+    db_password = os.getenv("POSTGRES_PASSWORD", "postgres")
+
 load_employee_csv_to_postgres(
     csv_file=os.getenv("EMPLOYEE_CSV_FILE", "Employee.csv"),
-    host=os.getenv("POSTGRES_HOST", "localhost"),
-    port=int(os.getenv("POSTGRES_PORT", "5432")),
-    database=os.getenv("POSTGRES_DB", "mydb"),
-    user=os.getenv("POSTGRES_USER", "postgres"),
-    password=os.getenv("POSTGRES_PASSWORD", "postgres"),
+    host=db_host,
+    port=db_port,
+    database=db_name,
+    user=db_user,
+    password=db_password,
     force_reload=os.getenv("FORCE_RELOAD_EMPLOYEES", "false").lower() == "true",
 )
