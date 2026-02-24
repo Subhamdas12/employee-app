@@ -7,7 +7,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "django-insecure-local-dev-key")
 DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
-ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+allowed_hosts_env = os.getenv("DJANGO_ALLOWED_HOSTS")
+if allowed_hosts_env:
+    ALLOWED_HOSTS = allowed_hosts_env.split(",")
+elif os.getenv("RAILWAY_ENVIRONMENT"):
+    ALLOWED_HOSTS = ["*"]
+else:
+    ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
 
 INSTALLED_APPS = [
     "django.contrib.admin",

@@ -11,3 +11,4 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 COPY application/ /app/application/
 COPY main.py /app/main.py
 COPY Employee.csv /app/Employee.csv
+COPY start_web.py /app/start_web.py
