@@ -28,11 +28,11 @@ def main() -> int:
     port = os.getenv("PORT", "8000")
     app_dir = "/app/application"
 
-    # Step 1 — Load CSV data into PostgreSQL (non-critical: don't kill server if this fails)
-    run([sys.executable, "/app/main.py"], critical=False)
+    # Step 1 — Apply Django migrations (creates auth tables, sessions, etc.)
+    run([sys.executable, "manage.py", "migrate", "--noinput"], cwd=app_dir, critical=False)
 
-    # Step 2 — Apply Django migrations (--fake-initial skips tables already created by main.py)
-    run([sys.executable, "manage.py", "migrate", "--fake-initial", "--noinput"], cwd=app_dir)
+    # Step 2 — Create employees table + load CSV data into PostgreSQL
+    run([sys.executable, "/app/main.py"], critical=False)
 
     # Step 3 — Collect static files
     run([sys.executable, "manage.py", "collectstatic", "--noinput"], cwd=app_dir)

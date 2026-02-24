@@ -4,122 +4,6 @@ import os
 from urllib.parse import urlparse
 
 
-def create_auth_tables(cur):
-    # Tracks applied migrations if you are managing schema manually.
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS django_migrations (
-            id BIGSERIAL PRIMARY KEY,
-            app VARCHAR(255) NOT NULL,
-            name VARCHAR(255) NOT NULL,
-            applied TIMESTAMPTZ NOT NULL
-        );
-        """
-    )
-
-    # Needed by Django auth permissions model.
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS django_content_type (
-            id BIGSERIAL PRIMARY KEY,
-            app_label VARCHAR(100) NOT NULL,
-            model VARCHAR(100) NOT NULL,
-            CONSTRAINT django_content_type_app_label_model_uniq UNIQUE (app_label, model)
-        );
-        """
-    )
-
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS auth_permission (
-            id BIGSERIAL PRIMARY KEY,
-            name VARCHAR(255) NOT NULL,
-            content_type_id BIGINT NOT NULL REFERENCES django_content_type(id) ON DELETE CASCADE,
-            codename VARCHAR(100) NOT NULL,
-            CONSTRAINT auth_permission_content_type_id_codename_uniq UNIQUE (content_type_id, codename)
-        );
-        """
-    )
-
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS auth_group (
-            id BIGSERIAL PRIMARY KEY,
-            name VARCHAR(150) NOT NULL UNIQUE
-        );
-        """
-    )
-
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS auth_group_permissions (
-            id BIGSERIAL PRIMARY KEY,
-            group_id BIGINT NOT NULL REFERENCES auth_group(id) ON DELETE CASCADE,
-            permission_id BIGINT NOT NULL REFERENCES auth_permission(id) ON DELETE CASCADE,
-            CONSTRAINT auth_group_permissions_group_id_permission_id_uniq UNIQUE (group_id, permission_id)
-        );
-        """
-    )
-
-    # Default Django user model table.
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS auth_user (
-            id BIGSERIAL PRIMARY KEY,
-            password VARCHAR(128) NOT NULL,
-            last_login TIMESTAMPTZ NULL,
-            is_superuser BOOLEAN NOT NULL,
-            username VARCHAR(150) NOT NULL UNIQUE,
-            first_name VARCHAR(150) NOT NULL,
-            last_name VARCHAR(150) NOT NULL,
-            email VARCHAR(254) NOT NULL,
-            is_staff BOOLEAN NOT NULL,
-            is_active BOOLEAN NOT NULL,
-            date_joined TIMESTAMPTZ NOT NULL
-        );
-        """
-    )
-
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS auth_user_groups (
-            id BIGSERIAL PRIMARY KEY,
-            user_id BIGINT NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE,
-            group_id BIGINT NOT NULL REFERENCES auth_group(id) ON DELETE CASCADE,
-            CONSTRAINT auth_user_groups_user_id_group_id_uniq UNIQUE (user_id, group_id)
-        );
-        """
-    )
-
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS auth_user_user_permissions (
-            id BIGSERIAL PRIMARY KEY,
-            user_id BIGINT NOT NULL REFERENCES auth_user(id) ON DELETE CASCADE,
-            permission_id BIGINT NOT NULL REFERENCES auth_permission(id) ON DELETE CASCADE,
-            CONSTRAINT auth_user_user_permissions_user_id_permission_id_uniq UNIQUE (user_id, permission_id)
-        );
-        """
-    )
-
-    # Required by Django session middleware/auth session storage.
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS django_session (
-            session_key VARCHAR(40) PRIMARY KEY,
-            session_data TEXT NOT NULL,
-            expire_date TIMESTAMPTZ NOT NULL
-        );
-        """
-    )
-    cur.execute(
-        """
-        CREATE INDEX IF NOT EXISTS django_session_expire_date_idx
-        ON django_session (expire_date);
-        """
-    )
-
-
 def load_employee_csv_to_postgres(
     csv_file="Employee.csv",
     host="localhost",
@@ -138,12 +22,11 @@ def load_employee_csv_to_postgres(
     )
 
     cur = conn.cursor()
-    create_auth_tables(cur)
 
-    # Create table matching CSV structure
+    # Create table matching CSV structure (Django auth tables are handled by migrate)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS employees (
-            id SERIAL PRIMARY KEY,
+            id BIGSERIAL PRIMARY KEY,
             education VARCHAR(50),
             joining_year INT,
             city VARCHAR(50),
