@@ -52,6 +52,36 @@ celery -A config worker -l info
 celery -A config beat -l info
 ```
 
+## Railway deployment with Celery
+
+Create 3 Railway services from the same repo (same Dockerfile build):
+
+1. `web`
+2. `celery-worker`
+3. `celery-beat`
+
+Use these start commands:
+
+```bash
+# web
+python /app/start_web.py
+
+# celery-worker
+python /app/start_worker.py
+
+# celery-beat
+python /app/start_beat.py
+```
+
+Set these env vars on all 3 services:
+
+- `DATABASE_URL` (Railway PostgreSQL)
+- `REDIS_URL` (Railway Redis)
+- optional explicit overrides:
+  - `REDIS_CACHE_URL=redis://.../1`
+  - `CELERY_BROKER_URL=redis://.../0`
+  - `CELERY_RESULT_BACKEND=redis://.../0`
+
 ## Behavior
 
 - First `GET /` request reads employees from PostgreSQL and stores them in Redis.

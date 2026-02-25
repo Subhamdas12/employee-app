@@ -12,3 +12,5 @@ COPY application/ /app/application/
 COPY main.py /app/main.py
 COPY Employee.csv /app/Employee.csv
 COPY start_web.py /app/start_web.py
+COPY start_worker.py /app/start_worker.py
+COPY start_beat.py /app/start_beat.py
